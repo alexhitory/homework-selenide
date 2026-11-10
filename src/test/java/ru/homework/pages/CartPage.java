@@ -9,8 +9,10 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.refresh;
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 public final class CartPage {
     private final SelenideElement title = $("[data-test='title']");
@@ -26,10 +28,16 @@ public final class CartPage {
     public CartPage shouldContainProduct(String productName, String price) {
         items.shouldHave(size(1));
         SelenideElement item = product(productName);
-        item.$("[data-test='inventory-item-name']").shouldHave(exactText(productName));
-        item.$("[data-test='inventory-item-price']").shouldHave(exactText(price));
-        item.$("[data-test='item-quantity']").shouldHave(exactText("1"));
+        assertAll("Название, цена и количество товара",
+                () -> item.$("[data-test='inventory-item-name']").shouldHave(exactText(productName)),
+                () -> item.$("[data-test='inventory-item-price']").shouldHave(exactText(price)),
+                () -> item.$("[data-test='item-quantity']").shouldHave(exactText("1")));
         return this;
+    }
+
+    public CartPage reload() {
+        refresh();
+        return shouldBeOpen();
     }
 
     public CartPage removeProduct(String productName) {
