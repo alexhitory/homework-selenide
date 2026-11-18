@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestFactory;
+import ru.homework.data.TestData;
 
 import java.time.Duration;
 import java.util.stream.Stream;
@@ -19,22 +20,15 @@ class LoginValidationTest extends BaseUiTest {
     @TestFactory
     @DisplayName("Ошибка при отсутствии обязательного поля")
     Stream<DynamicTest> missingCredentials() {
-        return Stream.of(
-                new LoginCase("Не заполнено имя пользователя", "", "secret_sauce",
-                        "Epic sadface: Username is required"),
-                new LoginCase("Не заполнен пароль", "standard_user", "",
-                        "Epic sadface: Password is required")
-        ).map(testCase -> dynamicTest(testCase.name(), () ->
+        return TestData.missingCredentials().map(testCase -> dynamicTest(testCase.name(), () ->
                 assertTimeout(Duration.ofSeconds(45), () -> {
                     try {
                         loginPage().open()
-                                .attemptLogin(testCase.username(), testCase.password())
+                                .attemptLogin(testCase.credentials())
                                 .shouldShowError(testCase.error());
                     } finally {
                         closeWebDriver();
                     }
                 })));
-    }
-    private record LoginCase(String name, String username, String password, String error) {
     }
 }

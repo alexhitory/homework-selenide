@@ -2,36 +2,40 @@ package ru.homework.pages;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import ru.homework.components.ProductItem;
+import ru.homework.components.ShoppingCart;
+import ru.homework.model.Product;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.refresh;
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
-public final class CartPage {
+public final class CartPage implements LoadableComponent<CartPage> {
     private final SelenideElement title = $("[data-test='title']");
     private final ElementsCollection items = $$("[data-test='inventory-item']");
-    private final SelenideElement cartBadge = $("[data-test='shopping-cart-badge']");
+    private final ShoppingCart cart = new ShoppingCart();
 
+    @Override
     public CartPage shouldBeOpen() {
         webdriver().shouldHave(urlContaining("/cart.html"));
         title.shouldBe(visible).shouldHave(exactText("Your Cart"));
+        $("[data-test='cart-list']").shouldBe(visible);
         return this;
     }
 
-    public CartPage shouldContainProduct(String productName, String price) {
-        items.shouldHave(size(1));
-        SelenideElement item = product(productName);
-        assertAll("Название, цена и количество товара",
-                () -> item.$("[data-test='inventory-item-name']").shouldHave(exactText(productName)),
-                () -> item.$("[data-test='inventory-item-price']").shouldHave(exactText(price)),
-                () -> item.$("[data-test='item-quantity']").shouldHave(exactText("1")));
+    public CartPage shouldContainProduct(Product product) {
+        product(product).shouldMatch(product).shouldHaveQuantity(1);
+        return this;
+    }
+
+    public CartPage shouldHaveProductCount(int expectedCount) {
+        items.shouldHave(size(expectedCount));
+        cart.shouldHaveCount(expectedCount);
         return this;
     }
 
@@ -40,19 +44,18 @@ public final class CartPage {
         return shouldBeOpen();
     }
 
-    public CartPage removeProduct(String productName) {
-        product(productName).$("button").shouldHave(exactText("Remove")).click();
+    public CartPage removeProduct(Product product) {
+        product(product).remove();
+        $$("[data-test='inventory-item-name']").filterBy(exactText(product.name())).shouldHave(size(0));
         return this;
     }
 
     public CartPage shouldBeEmpty() {
-        items.shouldHave(size(0));
-        cartBadge.shouldNot(exist);
-        return this;
+        return shouldHaveProductCount(0);
     }
 
-    private SelenideElement product(String productName) {
-        return $$("[data-test='inventory-item-name']").findBy(exactText(productName))
-                .closest("[data-test=inventory-item]");
+    private ProductItem product(Product product) {
+        return new ProductItem($$("[data-test='inventory-item-name']").findBy(exactText(product.name()))
+                .closest("[data-test=inventory-item]"));
     }
 }
