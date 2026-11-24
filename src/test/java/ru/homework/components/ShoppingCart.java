@@ -11,7 +11,7 @@ import static com.codeborne.selenide.Selenide.$;
 /** Shared header component, used by the inventory and cart pages. */
 public final class ShoppingCart {
     private final SelenideElement link = $("[data-test='shopping-cart-link']");
-    private final SelenideElement badge = $("[data-test='shopping-cart-badge']");
+    private final SelenideElement badge = link.$("[data-test='shopping-cart-badge']");
 
     public ShoppingCart shouldHaveCount(int count) {
         if (count == 0) {

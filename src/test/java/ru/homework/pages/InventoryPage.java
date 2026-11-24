@@ -10,19 +10,21 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
 
 public final class InventoryPage implements LoadableComponent<InventoryPage> {
     private final SelenideElement title = $("[data-test='title']");
-    private final ElementsCollection products = $$("[data-test='inventory-item']");
+    private final SelenideElement productList = $("[data-test='inventory-list']");
+    private final ElementsCollection products = productList.$$("[data-test='inventory-item']");
+    private final ElementsCollection productNames = productList.$$("[data-test='inventory-item-name']");
     private final ShoppingCart cart = new ShoppingCart();
 
     @Override
     public InventoryPage shouldBeOpen() {
         webdriver().shouldHave(urlContaining("/inventory.html"));
         title.shouldBe(visible).shouldHave(exactText("Products"));
+        productList.shouldBe(visible);
         return this;
     }
 
@@ -46,7 +48,7 @@ public final class InventoryPage implements LoadableComponent<InventoryPage> {
     }
 
     private ProductItem product(Product product) {
-        return new ProductItem($$("[data-test='inventory-item-name']").findBy(exactText(product.name()))
+        return new ProductItem(productNames.findBy(exactText(product.name()))
                 .closest("[data-test=inventory-item]"));
     }
 }

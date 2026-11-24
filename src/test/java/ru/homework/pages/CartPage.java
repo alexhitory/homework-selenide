@@ -10,21 +10,22 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.refresh;
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
 
 public final class CartPage implements LoadableComponent<CartPage> {
     private final SelenideElement title = $("[data-test='title']");
-    private final ElementsCollection items = $$("[data-test='inventory-item']");
+    private final SelenideElement cartList = $("[data-test='cart-list']");
+    private final ElementsCollection items = cartList.$$("[data-test='inventory-item']");
+    private final ElementsCollection productNames = cartList.$$("[data-test='inventory-item-name']");
     private final ShoppingCart cart = new ShoppingCart();
 
     @Override
     public CartPage shouldBeOpen() {
         webdriver().shouldHave(urlContaining("/cart.html"));
         title.shouldBe(visible).shouldHave(exactText("Your Cart"));
-        $("[data-test='cart-list']").shouldBe(visible);
+        cartList.shouldBe(visible);
         return this;
     }
 
@@ -46,7 +47,7 @@ public final class CartPage implements LoadableComponent<CartPage> {
 
     public CartPage removeProduct(Product product) {
         product(product).remove();
-        $$("[data-test='inventory-item-name']").filterBy(exactText(product.name())).shouldHave(size(0));
+        productNames.filterBy(exactText(product.name())).shouldHave(size(0));
         return this;
     }
 
@@ -55,7 +56,7 @@ public final class CartPage implements LoadableComponent<CartPage> {
     }
 
     private ProductItem product(Product product) {
-        return new ProductItem($$("[data-test='inventory-item-name']").findBy(exactText(product.name()))
+        return new ProductItem(productNames.findBy(exactText(product.name()))
                 .closest("[data-test=inventory-item]"));
     }
 }
